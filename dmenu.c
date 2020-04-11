@@ -28,7 +28,6 @@
 
 /* define opaqueness */
 #define OPAQUE                0xFFU
-#define MIN_BAR_HEIGHT        20
 
 /* enums */
 enum { SchemeNorm, SchemeSel, SchemeOut, SchemeLast }; /* color schemes */
@@ -652,7 +651,7 @@ setup(void)
 	utf8 = XInternAtom(dpy, "UTF8_STRING", False);
 
 	/* calculate menu geometry */
-	bh = MAX(drw->fonts->h + 2, MIN_BAR_HEIGHT);
+	bh = MAX(drw->fonts->h + 2, barheight);
 	lines = MAX(lines, 0);
 	mh = (lines + 1) * bh;
 #ifdef XINERAMA
@@ -750,6 +749,8 @@ loadxrdb(unsigned int urgent) {
 
     if (XrmGetResource(xrdb, "dwm.font", NULL, &type, &value) == True)
       strcpy(font, value.addr);
+    if (XrmGetResource(xrdb, "dwm.barHeight", NULL, &type, &value) == True)
+      barheight = strtoul(value.addr, NULL, 10);
 
     if (urgent != 1) {
       if (XrmGetResource(xrdb, "dwm.backgroundLight", NULL, &type, &value) == True)
