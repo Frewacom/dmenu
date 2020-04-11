@@ -27,7 +27,8 @@
 #define TEXTW(X)              (drw_fontset_getwidth(drw, (X)) + lrpad)
 
 /* define opaqueness */
-#define OPAQUE 0xFFU
+#define OPAQUE                0xFFU
+#define MIN_BAR_HEIGHT        20
 
 /* enums */
 enum { SchemeNorm, SchemeSel, SchemeOut, SchemeLast }; /* color schemes */
@@ -651,7 +652,7 @@ setup(void)
 	utf8 = XInternAtom(dpy, "UTF8_STRING", False);
 
 	/* calculate menu geometry */
-	bh = drw->fonts->h + 2;
+	bh = MAX(drw->fonts->h + 2, MIN_BAR_HEIGHT);
 	lines = MAX(lines, 0);
 	mh = (lines + 1) * bh;
 #ifdef XINERAMA
@@ -732,33 +733,33 @@ setup(void)
 static void
 usage(void)
 {
-	fputs("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-fn font] [-m monitor]\n"
+	fputs("usage: dmenu [-bfiv] [-l lines] [-p prompt] [-m monitor]\n"
 	      "             [-nb color] [-nf color] [-sb color] [-sf color] [-w windowid]\n", stderr);
 	exit(1);
 }
 
 void
-read_Xresources(void) {
+loadxrdb(void) {
 	XrmInitialize();
 
 	char* xrm;
 	if ((xrm = XResourceManagerString(drw->dpy))) {
 		char *type;
-		XrmDatabase xdb = XrmGetStringDatabase(xrm);
-		XrmValue xval;
+		XrmDatabase xrdb = XrmGetStringDatabase(xrm);
+		XrmValue value;
 
-		if (XrmGetResource(xdb, "dmenu.font", "*", &type, &xval) == True) /* font or font set */
-			fonts[0] = strdup(xval.addr);
-		if (XrmGetResource(xdb, "dmenu.color0", "*", &type, &xval) == True)  /* normal background color */
-			colors[SchemeSel][ColBg] = strdup(xval.addr);
-		if (XrmGetResource(xdb, "dmenu.color7", "*", &type, &xval) == True)  /* normal foreground color */
-			colors[SchemeNorm][ColFg] = strdup(xval.addr);
-		if (XrmGetResource(xdb, "dmenu.color6", "*", &type, &xval) == True)  /* selected background color */
-			colors[SchemeSel][ColBg] = strdup(xval.addr);
-		if (XrmGetResource(xdb, "dmenu.color0", "*", &type, &xval) == True)  /* selected foreground color */
-			colors[SchemeSel][ColFg] = strdup(xval.addr);
+		if (XrmGetResource(xrdb, "dwm.font", NULL, &type, &value) == True)
+      strcpy(font, value.addr);
+		if (XrmGetResource(xrdb, "dwm.background", NULL, &type, &value) == True)
+      colors[SchemeNorm][ColBg] = strdup(value.addr);
+		if (XrmGetResource(xrdb, "dwm.foreground", NULL, &type, &value) == True)
+      colors[SchemeNorm][ColFg] = strdup(value.addr);
+		if (XrmGetResource(xrdb, "dwm.selectedBackground", NULL, &type, &value) == True)
+      colors[SchemeSel][ColBg] = strdup(value.addr);
+		if (XrmGetResource(xrdb, "dwm.selectedForeground", NULL, &type, &value) == True)
+      colors[SchemeSel][ColFg] = strdup(value.addr);
 
-		XrmDestroyDatabase(xdb);
+		XrmDestroyDatabase(xrdb);
 	}
 }
 
@@ -789,8 +790,6 @@ main(int argc, char *argv[])
 			mon = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
 			prompt = argv[++i];
-		else if (!strcmp(argv[i], "-fn"))  /* font or font set */
-			fonts[0] = argv[++i];
 		else if (!strcmp(argv[i], "-nb"))  /* normal background color */
 			colors[SchemeNorm][ColBg] = argv[++i];
 		else if (!strcmp(argv[i], "-nf"))  /* normal foreground color */
@@ -819,9 +818,9 @@ main(int argc, char *argv[])
 		    parentwin);
 	xinitvisual();
 	drw = drw_create(dpy, screen, root, wa.width, wa.height, visual, depth, cmap);
-	read_Xresources();
-	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
-		die("no fonts could be loaded.");
+	loadxrdb();
+	if (!drw_fontset_create(drw, font))
+    die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
 
 #ifdef __OpenBSD__
