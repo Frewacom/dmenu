@@ -750,7 +750,7 @@ loadxrdb(void) {
 
 		if (XrmGetResource(xrdb, "dwm.font", NULL, &type, &value) == True)
       strcpy(font, value.addr);
-		if (XrmGetResource(xrdb, "dwm.background", NULL, &type, &value) == True)
+		if (XrmGetResource(xrdb, "dwm.backgroundLight", NULL, &type, &value) == True)
       colors[SchemeNorm][ColBg] = strdup(value.addr);
 		if (XrmGetResource(xrdb, "dwm.foreground", NULL, &type, &value) == True)
       colors[SchemeNorm][ColFg] = strdup(value.addr);
