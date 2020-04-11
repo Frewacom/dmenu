@@ -739,7 +739,7 @@ usage(void)
 }
 
 void
-loadxrdb(void) {
+loadxrdb(unsigned int urgent) {
 	XrmInitialize();
 
 	char* xrm;
@@ -748,16 +748,27 @@ loadxrdb(void) {
 		XrmDatabase xrdb = XrmGetStringDatabase(xrm);
 		XrmValue value;
 
-		if (XrmGetResource(xrdb, "dwm.font", NULL, &type, &value) == True)
+    if (XrmGetResource(xrdb, "dwm.font", NULL, &type, &value) == True)
       strcpy(font, value.addr);
-		if (XrmGetResource(xrdb, "dwm.backgroundLight", NULL, &type, &value) == True)
-      colors[SchemeNorm][ColBg] = strdup(value.addr);
-		if (XrmGetResource(xrdb, "dwm.foreground", NULL, &type, &value) == True)
-      colors[SchemeNorm][ColFg] = strdup(value.addr);
-		if (XrmGetResource(xrdb, "dwm.selectedBackground", NULL, &type, &value) == True)
-      colors[SchemeSel][ColBg] = strdup(value.addr);
-		if (XrmGetResource(xrdb, "dwm.selectedForeground", NULL, &type, &value) == True)
-      colors[SchemeSel][ColFg] = strdup(value.addr);
+
+    if (urgent != 1) {
+      if (XrmGetResource(xrdb, "dwm.backgroundLight", NULL, &type, &value) == True)
+        colors[SchemeNorm][ColBg] = strdup(value.addr);
+      if (XrmGetResource(xrdb, "dwm.foreground", NULL, &type, &value) == True)
+        colors[SchemeNorm][ColFg] = strdup(value.addr);
+      if (XrmGetResource(xrdb, "dwm.selectedBackground", NULL, &type, &value) == True)
+        colors[SchemeSel][ColBg] = strdup(value.addr);
+      if (XrmGetResource(xrdb, "dwm.selectedForeground", NULL, &type, &value) == True)
+        colors[SchemeSel][ColFg] = strdup(value.addr);
+    } else {
+      if (XrmGetResource(xrdb, "dwm.critical", NULL, &type, &value) == True)
+        colors[SchemeNorm][ColBg] = strdup(value.addr);
+      if (XrmGetResource(xrdb, "dwm.criticalDark", NULL, &type, &value) == True)
+        colors[SchemeSel][ColBg] = strdup(value.addr);
+
+      colors[SchemeNorm][ColFg] = "#ffffff";
+      colors[SchemeSel][ColFg] = "#ffffff";
+    }
 
 		XrmDestroyDatabase(xrdb);
 	}
@@ -767,7 +778,7 @@ int
 main(int argc, char *argv[])
 {
 	XWindowAttributes wa;
-	int i, fast = 0;
+	int i, fast, urgent = 0;
 
 	for (i = 1; i < argc; i++)
 		/* these options take no arguments */
@@ -790,16 +801,10 @@ main(int argc, char *argv[])
 			mon = atoi(argv[++i]);
 		else if (!strcmp(argv[i], "-p"))   /* adds prompt to left of input field */
 			prompt = argv[++i];
-		else if (!strcmp(argv[i], "-nb"))  /* normal background color */
-			colors[SchemeNorm][ColBg] = argv[++i];
-		else if (!strcmp(argv[i], "-nf"))  /* normal foreground color */
-			colors[SchemeNorm][ColFg] = argv[++i];
-		else if (!strcmp(argv[i], "-sb"))  /* selected background color */
-			colors[SchemeSel][ColBg] = argv[++i];
-		else if (!strcmp(argv[i], "-sf"))  /* selected foreground color */
-			colors[SchemeSel][ColFg] = argv[++i];
 		else if (!strcmp(argv[i], "-w"))   /* embedding window id */
 			embed = argv[++i];
+		else if (!strcmp(argv[i], "-u"))   /* embedding window id */
+      urgent = 1;
 		else
 			usage();
 
@@ -818,7 +823,7 @@ main(int argc, char *argv[])
 		    parentwin);
 	xinitvisual();
 	drw = drw_create(dpy, screen, root, wa.width, wa.height, visual, depth, cmap);
-	loadxrdb();
+	loadxrdb(urgent);
 	if (!drw_fontset_create(drw, font))
     die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
