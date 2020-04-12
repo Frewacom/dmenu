@@ -4,16 +4,7 @@
 static int topbar                     = 1;
 static const char *prompt             = NULL;
 static const char worddelimiters[]    = " ";
-static const unsigned int bgalpha     = 225;
-static const unsigned int fgalpha     = OPAQUE;
 static unsigned int lines             = 0;
-
-static const unsigned int alphas[SchemeLast][2] = {
-	/*		fgalpha		bgalphga	*/
-	[SchemeNorm] = { fgalpha, bgalpha },
-	[SchemeSel] = { fgalpha, bgalpha },
-	[SchemeOut] = { fgalpha, bgalpha },
-};
 
 /* Settings loaded from Xresources */
 static char font[] = "Noto Sans Mono Medium:style=Regular:size=9:antialias=true:autohint=true";
@@ -25,4 +16,9 @@ static char *colors[SchemeLast][2] = {
 	[SchemeOut] = { "#000000", "#00ffff" },
 };
 
-
+static unsigned int alphas[SchemeLast][2] = {
+	/*		fgalpha		bgalphga	*/
+	[SchemeNorm] = { OPAQUE, 225 },
+	[SchemeSel] = { OPAQUE, 225 },
+	[SchemeOut] = { OPAQUE, 225 },
+};

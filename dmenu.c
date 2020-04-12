@@ -751,6 +751,12 @@ loadxrdb(unsigned int urgent) {
       strcpy(font, value.addr);
     if (XrmGetResource(xrdb, "dwm.barHeight", NULL, &type, &value) == True)
       barheight = strtoul(value.addr, NULL, 10);
+    if (XrmGetResource(xrdb, "dwm.barAlpha", NULL, &type, &value) == True) {
+      unsigned int alpha = strtoul(value.addr, NULL, 10);
+      alphas[SchemeNorm][1] = alpha;
+      alphas[SchemeSel][1] = alpha;
+      alphas[SchemeOut][1] = alpha;
+    }
 
     if (urgent != 1) {
       if (XrmGetResource(xrdb, "dwm.backgroundLight", NULL, &type, &value) == True)
